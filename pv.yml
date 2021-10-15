@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch
+  namespace: kube-elaticsearch
+  labels:
+    type: local
+spec:
+  storageClassName: do-block-storage
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  claimRef:
+    namespace: kube-logging
+    name: elasticsearch
+  hostPath:
+    path: "/usr/share/elasticsearch/data"
