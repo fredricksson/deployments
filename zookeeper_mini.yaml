@@ -1,0 +1,98 @@
+
+  kind: "PersistentVolumeClaim"
+  apiVersion: "v1"
+  metadata:
+    name: zookeeper-claim0
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+---
+  kind: "PersistentVolumeClaim"
+  apiVersion: "v1"
+  metadata:
+    name: zookeeper-claim1
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+---
+  kind: "PersistentVolumeClaim"
+  apiVersion: "v1"
+  metadata:
+    name: zookeeper-claim2
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-cluster
+  labels:
+    component: zookeeper
+spec:
+  ports:
+  - name: "2181"
+    port: 2181
+    targetPort: 2181
+  selector:
+    component: zookeeper
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: zookeeper
+  name: zookeeper
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: zookeeper      
+  template:
+    metadata:
+      labels:
+        component: zookeeper
+    spec:
+      containers:
+      - image: zookeeper:3.4.13
+        name: zookeeper
+        ports:
+        - containerPort: 2181
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "100m"
+        volumeMounts:
+        - mountPath: /conf
+          name: zookeeper-claim0
+        - mountPath: /data
+          name: zookeeper-claim1
+        - mountPath: /datalog
+          name: zookeeper-claim2
+      restartPolicy: Always
+      volumes:
+      - name: zookeeper-claim0
+        persistentVolumeClaim:
+          claimName: zookeeper-claim0
+      - name: zookeeper-claim1
+        persistentVolumeClaim:
+          claimName: zookeeper-claim1
+      - name: zookeeper-claim2
+        persistentVolumeClaim:
+          claimName: zookeeper-claim2
+status: {}
